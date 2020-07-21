@@ -14,6 +14,7 @@ from scipy.ndimage.filters import gaussian_filter
 
 from xtgeo.common import XTGeoDialog
 from xtgeo.xyz import Polygons
+from xtgeo.well import Well
 
 from .baseplot import BasePlot
 
@@ -71,6 +72,7 @@ class XSection(BasePlot):
         self._gridproperty = gridproperty
         self._zonelogshift = zonelogshift
         self._outline = outline
+        self._has_axes = False
 
         self._has_legend = True
 
@@ -137,6 +139,19 @@ class XSection(BasePlot):
             raise ValueError("Input is not a bool")
 
         self._has_legend = value
+
+    @property
+    def has_axes(self):
+        """Returns or set the axes"""
+        return self._has_axes
+
+    @has_axes.setter
+    def has_axes(self, value):
+        """Returns or set the axes"""
+        if not isinstance(value, bool):
+            raise ValueError("Input is not a bool")
+
+        self._has_axes = value
 
     @property
     def colormap_facies(self):
@@ -314,6 +329,8 @@ class XSection(BasePlot):
                 fontsize=18,
             )
 
+        
+
         if subtitle is not None:
             ax1["main"].set_title(subtitle, size=14)
 
@@ -362,6 +379,24 @@ class XSection(BasePlot):
         ax2.yaxis.set_major_formatter(plt.NullFormatter())
         ax3.xaxis.set_major_formatter(plt.NullFormatter())
         ax3.yaxis.set_major_formatter(plt.NullFormatter())
+
+        if not self._has_axes:
+            plt.rcParams["axes.titlecolor"] = (0, 0, 0, 0)
+            plt.rcParams["axes.edgecolor"] = (0, 0, 0, 0)
+            plt.rcParams["axes.labelcolor"] = (0, 0, 0, 0)
+            plt.rcParams["axes.titlecolor"] = (0, 0, 0, 0)
+            plt.rcParams["xtick.color"] = (0, 0, 0, 0)
+            plt.rcParams["ytick.color"] = (0, 0, 0, 0)
+            # plt.axis("off")
+            # ax1["main"].axis("off")
+            # ax2.axis("off")
+            # ax3.axis("off")
+            # ax1["main"].set_axis_off()
+            # ax1["main"].axes.get_xaxis().set_visible(False)
+            # ax1["main"].axes.get_yaxis().set_visible(False)
+            # ax1["main"].patch.set_visible(False)
+            # for pos in ["top", "bottom", "right", "left"]:
+            #     ax1["main"].spines[pos].set_edgecolor((0,0,0,0))
 
         self._ax1 = ax1
         self._ax2 = ax2
@@ -629,6 +664,54 @@ class XSection(BasePlot):
             self._drawproxylegend(ax, bba, items=pcolors, title="Perforations")
 
     @staticmethod
+    def crossing_shortwellname(wellname):
+        """Returns well name on a short name form where blockname and spaces
+        are removed.
+
+        This should cope with both North Sea style and Haltenbanken style.
+
+        E.g.: '31/2-G-5 AH' -> 'G-5AH', '6472_11-F-23_AH_T2' -> 'F-23AHT2'
+
+        """
+        newname = []
+        first1 = False
+        first2 = False
+        for letter in wellname:
+            if first1 and first2:
+                newname.append(letter)
+                continue
+            if letter in ("_", "/"):
+                first1 = True
+                continue
+            if first1 and letter == "-":
+                first2 = True
+                continue
+
+        xname = "".join(newname)
+        xname = xname.replace("_", "")
+        xname = xname.replace(" ", "")
+        return xname
+
+    def _drawproxylegend(self, ax, bba, items, title=None):
+        proxies = []
+        labels = []
+
+        for item in items:
+            color = items[item]
+            proxies.append(Line2D([0, 1], [0, 1], color=color, linewidth=5))
+            labels.append(item)
+
+        ax.legend(
+            proxies,
+            labels,
+            loc="upper left",
+            bbox_to_anchor=bba,
+            prop={"size": self._legendsize},
+            title=title,
+            handlelength=2,
+        )
+
+    @staticmethod
     def _plot_well_crossings(dfr, ax, wcross):
         """Plot well crossing based on dataframe (wcross)
 
@@ -690,7 +773,8 @@ class XSection(BasePlot):
             modulo = index % 5
 
             ax.annotate(
-                row.CWELL,
+                # XSection.crossing_shortwellname(row.CWELL),
+                Well.get_short_wellname(row.CWELL),
                 size=6,
                 xy=(dfrc.R_HLEN[minindx], row.Z_TVDSS),
                 xytext=placings[modulo],
@@ -700,25 +784,6 @@ class XSection(BasePlot):
                 ),
                 color="black",
             )
-
-    def _drawproxylegend(self, ax, bba, items, title=None):
-        proxies = []
-        labels = []
-
-        for item in items:
-            color = items[item]
-            proxies.append(Line2D([0, 1], [0, 1], color=color, linewidth=5))
-            labels.append(item)
-
-        ax.legend(
-            proxies,
-            labels,
-            loc="upper left",
-            bbox_to_anchor=bba,
-            prop={"size": self._legendsize},
-            title=title,
-            handlelength=2,
-        )
 
     def _drawlegend(self, ax, bba, title=None):
 
@@ -755,7 +820,15 @@ class XSection(BasePlot):
             ax1[axisname].set_ylim([self._zmax, self._zmin])
 
             ax1[axisname].set_yticklabels([])
-            ax1[axisname].tick_params(axis="y", direction="in")
+
+            if self._has_axes:
+                ax1[axisname].tick_params(axis="y", direction="in")
+            else:
+                ax1[axisname].tick_params(
+                    axis="both",
+                    which='both',
+                    color=(0,0,0,0)
+                )
 
         ax = self._ax1[axisname]
 
@@ -1021,7 +1094,7 @@ class XSection(BasePlot):
         ax.tick_params(axis="y", direction="in")
 
         if axisname == "main" and gridlines:
-            ax.grid(color="grey", linewidth=0.2)
+            ax.grid(color="grey", linewidth=0.5)
 
     def plot_wellmap(self, otherwells=None, expand=1):
         """Plot well map as local view, optionally with nearby wells.
