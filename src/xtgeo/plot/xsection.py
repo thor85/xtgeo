@@ -72,8 +72,7 @@ class XSection(BasePlot):
         self._gridproperty = gridproperty
         self._zonelogshift = zonelogshift
         self._outline = outline
-        self._has_axes = False
-
+        self._has_axes = True
         self._has_legend = True
 
         self._pagesize = "A4"
@@ -269,6 +268,14 @@ class XSection(BasePlot):
 
         plt.rcParams["axes.xmargin"] = 0  # fill the plot margins
 
+        if not self._has_axes:
+            plt.rcParams["axes.titlecolor"] = (0, 0, 0, 0)
+            plt.rcParams["axes.edgecolor"] = (0, 0, 0, 0)
+            plt.rcParams["axes.labelcolor"] = (0, 0, 0, 0)
+            plt.rcParams["axes.titlecolor"] = (0, 0, 0, 0)
+            plt.rcParams["xtick.color"] = (0, 0, 0, 0)
+            plt.rcParams["ytick.color"] = (0, 0, 0, 0)
+
         # self._fig, (ax1, ax2) = plt.subplots(2, figsize=(11.69, 8.27))
         self._fig, __ = plt.subplots(figsize=(11.69 * figscaling, 8.27 * figscaling))
         ax1 = OrderedDict()
@@ -345,8 +352,8 @@ class XSection(BasePlot):
                 fontsize=6,
             )
 
-        ax1["main"].set_ylabel("Depth", fontsize=12.0)
-        ax1["main"].set_xlabel("Length along well", fontsize=12)
+        ax1["main"].set_ylabel("TVD MSL [m]", fontsize=12.0)
+        ax1["main"].set_xlabel("Length along well [m]", fontsize=12)
 
         ax2.tick_params(
             axis="both",
@@ -380,13 +387,13 @@ class XSection(BasePlot):
         ax3.xaxis.set_major_formatter(plt.NullFormatter())
         ax3.yaxis.set_major_formatter(plt.NullFormatter())
 
-        if not self._has_axes:
-            plt.rcParams["axes.titlecolor"] = (0, 0, 0, 0)
-            plt.rcParams["axes.edgecolor"] = (0, 0, 0, 0)
-            plt.rcParams["axes.labelcolor"] = (0, 0, 0, 0)
-            plt.rcParams["axes.titlecolor"] = (0, 0, 0, 0)
-            plt.rcParams["xtick.color"] = (0, 0, 0, 0)
-            plt.rcParams["ytick.color"] = (0, 0, 0, 0)
+        # if not self._has_axes:
+        #     plt.rcParams["axes.titlecolor"] = (0, 0, 0, 0)
+        #     plt.rcParams["axes.edgecolor"] = (0, 0, 0, 0)
+        #     plt.rcParams["axes.labelcolor"] = (0, 0, 0, 0)
+        #     plt.rcParams["axes.titlecolor"] = (0, 0, 0, 0)
+        #     plt.rcParams["xtick.color"] = (0, 0, 0, 0)
+        #     plt.rcParams["ytick.color"] = (0, 0, 0, 0)
             # plt.axis("off")
             # ax1["main"].axis("off")
             # ax2.axis("off")
@@ -712,7 +719,7 @@ class XSection(BasePlot):
         )
 
     @staticmethod
-    def _plot_well_crossings(dfr, ax, wcross):
+    def _plot_well_crossings(dfr, ax, wcross, names=True):
         """Plot well crossing based on dataframe (wcross)
 
         The well crossing coordinates are identified for this well,
@@ -772,18 +779,19 @@ class XSection(BasePlot):
 
             modulo = index % 5
 
-            ax.annotate(
-                # XSection.crossing_shortwellname(row.CWELL),
-                Well.get_short_wellname(row.CWELL),
-                size=6,
-                xy=(dfrc.R_HLEN[minindx], row.Z_TVDSS),
-                xytext=placings[modulo],
-                textcoords="offset points",
-                arrowprops=dict(
-                    arrowstyle="->", connectionstyle="angle3,angleA=0,angleB=90"
-                ),
-                color="black",
-            )
+            if names:
+                ax.annotate(
+                    # XSection.crossing_shortwellname(row.CWELL),
+                    Well.get_short_wellname(row.CWELL),
+                    size=6,
+                    xy=(dfrc.R_HLEN[minindx], row.Z_TVDSS),
+                    xytext=placings[modulo],
+                    textcoords="offset points",
+                    arrowprops=dict(
+                        arrowstyle="->", connectionstyle="angle3,angleA=0,angleB=90"
+                    ),
+                    color="black",
+                )
 
     def _drawlegend(self, ax, bba, title=None):
 
