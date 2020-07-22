@@ -415,6 +415,7 @@ class XSection(BasePlot):
         facieslogname=None,
         perflogname=None,
         wellcrossings=None,
+        wellcrossingnames=True,
         welltrajcolor='b',
     ):
         """Input an XTGeo Well object and plot it."""
@@ -461,7 +462,7 @@ class XSection(BasePlot):
             wellcrossings = None
 
         if wellcrossings is not None:
-            self._plot_well_crossings(dfr, axx, wellcrossings)
+            self._plot_well_crossings(dfr, axx, wellcrossings, wellcrossingnames)
 
     def _plot_well_traj(self, ax, zv, hv, welltrajcolor):
         """Plot the trajectory as a black line"""
