@@ -13,13 +13,13 @@ environment:
   matrix:
     - PYTHON: C:\Python36
       PYTHON_VERSION: 36
-      TAG_SCENARIO: False
+      TAG_SCENARIO: True
     - PYTHON: C:\Python37
       PYTHON_VERSION: 37
       TAG_SCENARIO: True
     - PYTHON: C:\Python38
       PYTHON_VERSION: 38
-      TAG_SCENARIO: False
+      TAG_SCENARIO: True
 
 matrix:
   fast_finish: true
@@ -32,7 +32,7 @@ for:
   skip_non_tags: True
 
 install:
-  - ps: choco install -y --no-progress --allow-empty-checksums -r swig
+  - ps: choco install -y --no-progress --allow-empty-checksums -r swig --version=4.0.1
   - IF "%platform%" == "x64" SET PYTHON=%PYTHON%-x64
   - SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
   - SET PIP_DISABLE_PIP_VERSION_CHECK=1
@@ -59,12 +59,12 @@ build_script:
 test_script:
   - pytest --disable-warnings
 
-deploy_script:
-  - echo "Upload to PYPI if tag..."
-  - ps: |
-        Write-Host "TAG: $env:APPVEYOR_REPO_TAG"
-        If ($env:APPVEYOR_REPO_TAG -eq "false") { return }
+# deploy_script:
+#   - echo "Upload to PYPI if tag..."
+#   - ps: |
+#         Write-Host "TAG: $env:APPVEYOR_REPO_TAG"
+#         If ($env:APPVEYOR_REPO_TAG -eq "false") { return }
 
-        Write-Host "Uploading wheels to pypi"
-        Invoke-Expression "twine upload -u jcrivenaes --password $env:PYPIPASSWD --skip-existing dist/*"
-        If ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }
+#         Write-Host "Uploading wheels to pypi"
+#         Invoke-Expression "twine upload -u jcrivenaes --password $env:PYPIPASSWD --skip-existing dist/*"
+#         If ($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode) }

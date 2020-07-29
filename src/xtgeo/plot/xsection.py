@@ -455,7 +455,11 @@ class XSection(BasePlot):
             self._plot_well_faclog(dfr, ax, bba, facieslogname, legend=self._has_legend)
 
         axx, _bbxa = self._currentax(axisname="well")
+<<<<<<< HEAD
         self._plot_well_traj(axx, zv, hv, welltrajcolor=welltrajcolor, linewidth=welltrajwidth)
+=======
+        self._plot_well_traj(axx, zv, hv, welltrajcolor=welltrajcolor)
+>>>>>>> upstream
 
         if zonelogname:
             ax, bba = self._currentax(axisname="main")
@@ -472,39 +476,6 @@ class XSection(BasePlot):
                 wellcrossingnames,
                 wellcrossingyear
             )
-
-        # if usemd:
-        #     md_start = dfr["MDEPTH"].iloc[0]
-        #     md_start_round = int(math.floor(md_start / 100.0)) * 100
-        #     md_start_delta = md_start - md_start_round
-        #     print(md_start)
-        #     print(md_start_round)
-        #     print(md_start_delta)
-
-        #     auto_ticks = plt.xticks()
-        #     auto_ticks_delta = auto_ticks[0][1] - auto_ticks[0][0]
-        #     print(" ")
-        #     print(auto_ticks)
-        #     print(auto_ticks_delta)
-
-        #     new_ticks = []
-        #     new_tick_labels = []
-        #     delta = 0
-        #     for tick in auto_ticks[0]:
-        #         new_ticks.append(int(float(tick) - md_start_delta))
-        #         new_tick_labels.append(int(md_start_round + delta))
-        #         delta += auto_ticks_delta
-
-        #     print(" ")
-        #     print(new_ticks)
-        #     print(new_tick_labels)
-
-        #     # Set new xticks and labels
-        #     plt.xticks(new_ticks, new_tick_labels)
-
-        #     # set new x-axis label
-        #     ax, bba = self._currentax(axisname="main")
-        #     ax.set_xlabel("Measured Depth [m]", fontsize=12)
 
     def set_xaxis_md(self, gridlines=False):
         """Set x-axis labels to measured depth."""
