@@ -455,11 +455,7 @@ class XSection(BasePlot):
             self._plot_well_faclog(dfr, ax, bba, facieslogname, legend=self._has_legend)
 
         axx, _bbxa = self._currentax(axisname="well")
-<<<<<<< HEAD
         self._plot_well_traj(axx, zv, hv, welltrajcolor=welltrajcolor, linewidth=welltrajwidth)
-=======
-        self._plot_well_traj(axx, zv, hv, welltrajcolor=welltrajcolor)
->>>>>>> upstream
 
         if zonelogname:
             ax, bba = self._currentax(axisname="main")
