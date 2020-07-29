@@ -715,34 +715,34 @@ class XSection(BasePlot):
 
             self._drawproxylegend(ax, bba, items=pcolors, title="Perforations")
 
-    @staticmethod
-    def crossing_shortwellname(wellname):
-        """Returns well name on a short name form where blockname and spaces
-        are removed.
+    # @staticmethod
+    # def crossing_shortwellname(wellname):
+    #     """Returns well name on a short name form where blockname and spaces
+    #     are removed.
 
-        This should cope with both North Sea style and Haltenbanken style.
+    #     This should cope with both North Sea style and Haltenbanken style.
 
-        E.g.: '31/2-G-5 AH' -> 'G-5AH', '6472_11-F-23_AH_T2' -> 'F-23AHT2'
+    #     E.g.: '31/2-G-5 AH' -> 'G-5AH', '6472_11-F-23_AH_T2' -> 'F-23AHT2'
 
-        """
-        newname = []
-        first1 = False
-        first2 = False
-        for letter in wellname:
-            if first1 and first2:
-                newname.append(letter)
-                continue
-            if letter in ("_", "/"):
-                first1 = True
-                continue
-            if first1 and letter == "-":
-                first2 = True
-                continue
+    #     """
+    #     newname = []
+    #     first1 = False
+    #     first2 = False
+    #     for letter in wellname:
+    #         if first1 and first2:
+    #             newname.append(letter)
+    #             continue
+    #         if letter in ("_", "/"):
+    #             first1 = True
+    #             continue
+    #         if first1 and letter == "-":
+    #             first2 = True
+    #             continue
 
-        xname = "".join(newname)
-        xname = xname.replace("_", "")
-        xname = xname.replace(" ", "")
-        return xname
+    #     xname = "".join(newname)
+    #     xname = xname.replace("_", "")
+    #     xname = xname.replace(" ", "")
+    #     return xname
 
     def _drawproxylegend(self, ax, bba, items, title=None):
         proxies = []
