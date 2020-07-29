@@ -506,33 +506,18 @@ class XSection(BasePlot):
         #     ax, bba = self._currentax(axisname="main")
         #     ax.set_xlabel("Measured Depth [m]", fontsize=12)
 
-    def set_xaxis_md(self):
+    def set_xaxis_md(self, gridlines=False):
         """Set x-axis labels to measured depth."""
 
-        wo = self._well
-        dfr = wo.dataframe
-
-        md_start = dfr["MDEPTH"].iloc[0]
+        md_start = self._well.dataframe["MDEPTH"].iloc[0]
         md_start_round = int(math.floor(md_start / 100.0)) * 100
         md_start_delta = md_start - md_start_round
-        # print(md_start)
-        # print(md_start_round)
-        # print(md_start_delta)
 
         auto_ticks = plt.xticks()
         auto_ticks_delta = auto_ticks[0][1] - auto_ticks[0][0]
-        # print(" ")
-        # print(auto_ticks)
-        # print(auto_ticks_delta)
 
         ax, bba = self._currentax(axisname="main")
-        # auto_ticks2 = ax.get_xticks()
-        # print(" ")
-        # print(auto_ticks2)
-
         lim = ax.get_xlim()
-        # print("lim")
-        # print(lim)
 
         new_ticks = []
         new_tick_labels = []
@@ -542,26 +527,19 @@ class XSection(BasePlot):
             new_tick_labels.append(int(md_start_round + delta))
             delta += auto_ticks_delta
 
-        # print(" ")
-        # print(new_ticks)
-        # print(new_tick_labels)
-
         # Set new xticks and labels
         plt.xticks(new_ticks, new_tick_labels)
-        ax.tick_params(axis="y", direction="in", which="both")
-        ax.minorticks_on()
-        ax.grid(color="black", linewidth=0.8, which="major", linestyle='-')
-        ax.grid(color="black", linewidth=0.5, which="minor", linestyle='--')
 
-        # lim2 = ax.get_xlim()
-        # print("lim2")
-        # print(lim2)
+        if gridlines:
+            ax.tick_params(axis="y", direction="in", which="both")
+            ax.minorticks_on()
+            ax.grid(color="black", linewidth=0.8, which="major", linestyle='-')
+            ax.grid(color="black", linewidth=0.5, which="minor", linestyle='--')
 
+        # Restore xaxis limits and set axis title
         ax.set_xlim(lim)
-
-        # set new x-axis label
-        # ax, bba = self._currentax(axisname="main")
         ax.set_xlabel("Measured Depth [m]", fontsize=12)
+
 
     def _plot_well_traj(self, ax, zv, hv, welltrajcolor, linewidth):
         """Plot the trajectory as a black line"""
