@@ -4,6 +4,7 @@ from __future__ import print_function
 
 from collections import OrderedDict
 
+import math
 import numpy.ma as ma
 import numpy as np
 import pandas as pd
@@ -416,7 +417,9 @@ class XSection(BasePlot):
         perflogname=None,
         wellcrossings=None,
         wellcrossingnames=True,
+        wellcrossingyear=False,
         welltrajcolor='b',
+        welltrajwidth=6,
     ):
         """Input an XTGeo Well object and plot it."""
 
@@ -452,7 +455,7 @@ class XSection(BasePlot):
             self._plot_well_faclog(dfr, ax, bba, facieslogname, legend=self._has_legend)
 
         axx, _bbxa = self._currentax(axisname="well")
-        self._plot_well_traj(axx, zv, hv, welltrajcolor=welltrajcolor)
+        self._plot_well_traj(axx, zv, hv, welltrajcolor=welltrajcolor, linewidth=welltrajwidth)
 
         if zonelogname:
             ax, bba = self._currentax(axisname="main")
@@ -462,15 +465,111 @@ class XSection(BasePlot):
             wellcrossings = None
 
         if wellcrossings is not None:
-            self._plot_well_crossings(dfr, axx, wellcrossings, wellcrossingnames)
+            self._plot_well_crossings(
+                dfr,
+                axx,
+                wellcrossings,
+                wellcrossingnames,
+                wellcrossingyear
+            )
 
-    def _plot_well_traj(self, ax, zv, hv, welltrajcolor):
+        # if usemd:
+        #     md_start = dfr["MDEPTH"].iloc[0]
+        #     md_start_round = int(math.floor(md_start / 100.0)) * 100
+        #     md_start_delta = md_start - md_start_round
+        #     print(md_start)
+        #     print(md_start_round)
+        #     print(md_start_delta)
+
+        #     auto_ticks = plt.xticks()
+        #     auto_ticks_delta = auto_ticks[0][1] - auto_ticks[0][0]
+        #     print(" ")
+        #     print(auto_ticks)
+        #     print(auto_ticks_delta)
+
+        #     new_ticks = []
+        #     new_tick_labels = []
+        #     delta = 0
+        #     for tick in auto_ticks[0]:
+        #         new_ticks.append(int(float(tick) - md_start_delta))
+        #         new_tick_labels.append(int(md_start_round + delta))
+        #         delta += auto_ticks_delta
+
+        #     print(" ")
+        #     print(new_ticks)
+        #     print(new_tick_labels)
+
+        #     # Set new xticks and labels
+        #     plt.xticks(new_ticks, new_tick_labels)
+
+        #     # set new x-axis label
+        #     ax, bba = self._currentax(axisname="main")
+        #     ax.set_xlabel("Measured Depth [m]", fontsize=12)
+
+    def set_xaxis_md(self):
+        """Set x-axis labels to measured depth."""
+
+        wo = self._well
+        dfr = wo.dataframe
+
+        md_start = dfr["MDEPTH"].iloc[0]
+        md_start_round = int(math.floor(md_start / 100.0)) * 100
+        md_start_delta = md_start - md_start_round
+        # print(md_start)
+        # print(md_start_round)
+        # print(md_start_delta)
+
+        auto_ticks = plt.xticks()
+        auto_ticks_delta = auto_ticks[0][1] - auto_ticks[0][0]
+        # print(" ")
+        # print(auto_ticks)
+        # print(auto_ticks_delta)
+
+        ax, bba = self._currentax(axisname="main")
+        # auto_ticks2 = ax.get_xticks()
+        # print(" ")
+        # print(auto_ticks2)
+
+        lim = ax.get_xlim()
+        # print("lim")
+        # print(lim)
+
+        new_ticks = []
+        new_tick_labels = []
+        delta = 0
+        for tick in auto_ticks[0]:
+            new_ticks.append(int(float(tick) - md_start_delta))
+            new_tick_labels.append(int(md_start_round + delta))
+            delta += auto_ticks_delta
+
+        # print(" ")
+        # print(new_ticks)
+        # print(new_tick_labels)
+
+        # Set new xticks and labels
+        plt.xticks(new_ticks, new_tick_labels)
+        ax.tick_params(axis="y", direction="in", which="both")
+        ax.minorticks_on()
+        ax.grid(color="black", linewidth=0.8, which="major", linestyle='-')
+        ax.grid(color="black", linewidth=0.5, which="minor", linestyle='--')
+
+        # lim2 = ax.get_xlim()
+        # print("lim2")
+        # print(lim2)
+
+        ax.set_xlim(lim)
+
+        # set new x-axis label
+        # ax, bba = self._currentax(axisname="main")
+        ax.set_xlabel("Measured Depth [m]", fontsize=12)
+
+    def _plot_well_traj(self, ax, zv, hv, welltrajcolor, linewidth):
         """Plot the trajectory as a black line"""
 
         zv_copy = ma.masked_where(zv < self._zmin, zv)
         hv_copy = ma.masked_where(zv < self._zmin, hv)
 
-        ax.plot(hv_copy, zv_copy, linewidth=6, c=welltrajcolor)
+        ax.plot(hv_copy, zv_copy, linewidth=linewidth, c=welltrajcolor)
 
     @staticmethod
     def _line_segments_colors(df, idx, ctable, logname, fillnavalue):
@@ -720,7 +819,7 @@ class XSection(BasePlot):
         )
 
     @staticmethod
-    def _plot_well_crossings(dfr, ax, wcross, names=True):
+    def _plot_well_crossings(dfr, ax, wcross, names=True, year=False):
         """Plot well crossing based on dataframe (wcross)
 
         The well crossing coordinates are identified for this well,
@@ -781,9 +880,19 @@ class XSection(BasePlot):
             modulo = index % 5
 
             if names:
+                text = Well.get_short_wellname(row.CWELL)
+
+            if year:
+                if names:
+                    text = text + '\n' + row.CYEAR
+                else:
+                    text = row.CYEAR
+            
+            if names or year:
                 ax.annotate(
                     # XSection.crossing_shortwellname(row.CWELL),
-                    Well.get_short_wellname(row.CWELL),
+                    # Well.get_short_wellname(row.CWELL),
+                    text,
                     size=6,
                     xy=(dfrc.R_HLEN[minindx], row.Z_TVDSS),
                     xytext=placings[modulo],
@@ -995,6 +1104,7 @@ class XSection(BasePlot):
         colormap=None,
         onecolor=None,
         linewidth=1.0,
+        linestyle='-',
         legend=True,
         legendtitle=None,
         fancyline=False,
@@ -1072,6 +1182,7 @@ class XSection(BasePlot):
                     linewidth=linewidth,
                     c=usecolor,
                     label=slegend[i],
+                    linestyle=linestyle
                 )
                 if fancyline:
                     ax.plot(
@@ -1088,7 +1199,7 @@ class XSection(BasePlot):
                 else:
                     y2 = y1.copy()
 
-                ax.plot(x1, y1, linewidth=0.1 * linewidth, c="black")
+                ax.plot(x1, y1, linewidth=0.1 * linewidth, c="black", linestyle=linestyle)
                 ax.fill_between(x1, y1, y2, facecolor=colortable[i], label=slegend[i])
 
         # invert min,max to invert the Y axis
@@ -1100,10 +1211,66 @@ class XSection(BasePlot):
         if axisname != "main":
             ax.set_yticklabels([])
 
-        ax.tick_params(axis="y", direction="in")
+        # ax.tick_params(axis="y", direction="in", which="both")
 
         if axisname == "main" and gridlines:
-            ax.grid(color="grey", linewidth=0.5)
+            # ax.minorticks_on()
+            ax.grid(color="black", linewidth=0.8, which="major", linestyle='-')
+            # ax.grid(color="black", linewidth=0.5, which="minor", linestyle='--')
+
+    def plot_md_data(
+        self,
+        fillstyle='full',
+        data=None,
+        marker=".",
+        markersize=5,
+        color='None',
+        facecolor='black',
+        edgecolor='black',
+        linestyle="",
+        linewidth=1.0,
+        label=False,
+        axisname="main",
+        **kwargs
+    ):
+        """Input a list of points (MD vs TVD) , and plot them.
+
+        The pandas dataframe points shall have the following columns:
+
+        * Name of well(s) named WELL
+        * Coordinate X named MDEPTH
+        * Coordinate Y named Z_TVDSS
+        """
+
+        ax, bba = self._currentax(axisname=axisname)
+
+        well = self._well
+        dfr = well.dataframe
+        md_start = dfr["MDEPTH"].iloc[0]
+
+        data_well = data.copy()
+        data_well = data_well.loc[data_well["WELL"] == well.xwellname]
+        del data_well["WELL"]
+
+        data_well['R_HLEN'] = data_well['MDEPTH']
+        data_well['R_HLEN'] = data_well['R_HLEN'].subtract(md_start)
+
+        data_well.plot(
+            ax=ax,
+            x="R_HLEN",
+            y="Z_TVDSS",
+            legend=None,
+            linestyle=linestyle,
+            linewidth=linewidth,
+            marker=marker,
+            markersize=markersize,
+            color=color,
+            markerfacecolor=facecolor,
+            markeredgecolor=edgecolor,
+            label=label,
+            fillstyle=fillstyle,
+            **kwargs
+        )
 
     def plot_wellmap(self, otherwells=None, expand=1):
         """Plot well map as local view, optionally with nearby wells.
