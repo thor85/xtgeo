@@ -142,12 +142,12 @@ class XSection(BasePlot):
 
     @property
     def has_axes(self):
-        """Returns or set the axes"""
+        """Returns or set the axes status"""
         return self._has_axes
 
     @has_axes.setter
     def has_axes(self, value):
-        """Returns or set the axes"""
+        """Returns or set the axes status"""
         if not isinstance(value, bool):
             raise ValueError("Input is not a bool")
 
@@ -1220,38 +1220,31 @@ class XSection(BasePlot):
 
     def plot_md_data(
         self,
-        fillstyle='full',
         data=None,
-        marker=".",
-        markersize=5,
-        color='None',
-        facecolor='black',
-        edgecolor='black',
+        markersize=10,
+        color='red',
         linestyle="",
-        linewidth=1.0,
         label=False,
-        axisname="main",
+        zorder=350,
         **kwargs
     ):
-        """Input a list of points (MD vs TVD) , and plot them.
+        """
+        Plot MD vs TVD data as lines and/or markers
 
-        The pandas dataframe points shall have the following columns:
-
+        The input pandas dataframe points shall have the following columns:
         * Name of well(s) named WELL
         * Coordinate X named MDEPTH
         * Coordinate Y named Z_TVDSS
         """
 
-        ax, bba = self._currentax(axisname=axisname)
+        ax, bba = self._currentax(axisname="main")
 
         well = self._well
-        dfr = well.dataframe
-        md_start = dfr["MDEPTH"].iloc[0]
-
         data_well = data.copy()
         data_well = data_well.loc[data_well["WELL"] == well.xwellname]
         del data_well["WELL"]
 
+        md_start = well.dataframe["MDEPTH"].iloc[0]
         data_well['R_HLEN'] = data_well['MDEPTH']
         data_well['R_HLEN'] = data_well['R_HLEN'].subtract(md_start)
 
@@ -1261,14 +1254,10 @@ class XSection(BasePlot):
             y="Z_TVDSS",
             legend=None,
             linestyle=linestyle,
-            linewidth=linewidth,
-            marker=marker,
             markersize=markersize,
             color=color,
-            markerfacecolor=facecolor,
-            markeredgecolor=edgecolor,
             label=label,
-            fillstyle=fillstyle,
+            zorder=zorder,
             **kwargs
         )
 
